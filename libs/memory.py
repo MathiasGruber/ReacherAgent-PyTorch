@@ -17,10 +17,10 @@ class ReplayBuffer:
 
     def __init__(self, action_size, buffer_size, batch_size, seed):
         """Initialize a ReplayBuffer object.
-        Params
-        ======
-            buffer_size (int): maximum size of buffer
-            batch_size (int): size of each training batch
+
+        Arguments:
+            buffer_size {int} -- maximum size of buffer
+            batch_size {int} -- size of each training batch
         """
         self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
@@ -29,7 +29,15 @@ class ReplayBuffer:
         self.seed = random.seed(seed)
     
     def add(self, state, action, reward, next_state, done):
-        """Add a new experience to memory."""
+        """Add a new experience to memory.
+        
+        Arguments:
+            state {int} -- maximum size of buffer
+            action {int} -- size of each training batch
+            reward {int} -- size of each training batch
+            next_state {int} -- size of each training batch
+            done {int} -- size of each training batch
+        """
         e = self.experience(state, action, reward, next_state, done)
         self.memory.append(e)
     
@@ -46,7 +54,11 @@ class ReplayBuffer:
         return (states, actions, rewards, next_states, dones)
 
     def __len__(self):
-        """Return the current size of internal memory."""
+        """Return the current size of internal memory.
+        
+        Returns:
+            [int] -- samples
+        """
         return len(self.memory)
 
 class PrioritizedReplayMemory:  
