@@ -40,6 +40,7 @@ def train(
     best_avg_score = -np.inf
 
     # Loop over episodes
+    time_start = time.time()
     for i in range(1, n_episodes+1):
 
         # Get initial state from environment
