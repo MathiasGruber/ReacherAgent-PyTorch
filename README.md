@@ -40,12 +40,12 @@ Download your specific environment and unpack it into the `./env_unity/` folder 
 # Training the agent
 For training the agent on the single-agent version of the environment, the model can be run by using one of the following (only tested on windows!):
 ```
-TO BE IMPLEMENTED
+python main.py --environment env_unity/Reacher_singleAgent/Reacher.exe
 ```
 
 For training the agent on the 20-agent version of the environment, the following can be used (opnly tested on windows!):
 ```
-TO BE IMPLEMENTED
+python main.py --environment env_unity/Reacher_multipleAgents/Reacher.exe
 ```
 
 # Testing the agent
