@@ -10,13 +10,13 @@ import torch.optim as optim
 from libs.models import Actor, Critic
 from libs.memory import ReplayBuffer, PrioritizedReplayMemory
 
-BATCH_SIZE = 64         # Batch Size
-BUFFER_SIZE = int(1e6)  # Memory capacity
+BATCH_SIZE = 128        # Batch Size
+BUFFER_SIZE = int(1e5)  # Memory capacity
 GAMMA = 0.99            # Discount factor
 LR_ACTOR = 1e-4         # Actor lerning rate
 LR_CRITIC = 1e-3        # Critic learning rate
 TAU = 1e-3              # Soft update of target networks
-WEIGHT_DECAY = 1e-2     # L2 weight decay for Critic
+WEIGHT_DECAY = 0        # L2 weight decay for Critic
 
 
 class Agents():
