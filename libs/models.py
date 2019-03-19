@@ -36,8 +36,8 @@ class Actor(BaseModel):
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.fc1.weight.data.uniform_(*self.hidden_init(self.fc1))
-        self.fc2.weight.data.uniform_(*self.hidden_init(self.fc2))
+        self.fc1.weight.data.uniform_(*self.fan_in_initializer(self.fc1))
+        self.fc2.weight.data.uniform_(*self.fan_in_initializer(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state):
@@ -67,8 +67,8 @@ class Critic(BaseModel):
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.fc1.weight.data.uniform_(*self.hidden_init(self.fc1))
-        self.fc2.weight.data.uniform_(*self.hidden_init(self.fc2))
+        self.fc1.weight.data.uniform_(*self.fan_in_initializer(self.fc1))
+        self.fc2.weight.data.uniform_(*self.fan_in_initializer(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state, action):
