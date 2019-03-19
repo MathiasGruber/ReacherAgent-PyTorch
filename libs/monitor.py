@@ -74,7 +74,8 @@ def train(
 
         # Info for user every 100 episodes
         n_secs = int(time.time() - time_start)
-        print(f'Episode {i:6}\t Score: {score:.2f}\t Avg: {avg_score:.2f}\t Best Avg: {best_avg_score:.2f} \t Memory: {len(agent.memory):6}\t Seconds: {n_secs:4}')
+        
+        print(f'Episode {i:6}\t Score: {np.mean(score):.2f}\t Avg: {avg_score:.2f}\t Best Avg: {best_avg_score:.2f} \t Memory: {len(agents.memory):6}\t Seconds: {n_secs:4}')
         time_start = time.time()
 
         # Check if done
