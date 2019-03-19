@@ -43,13 +43,13 @@ class Agents():
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Actor Network (incl. target network)
-        self.actor_local = Actor(state_size, action_size, self.seed).to(self.device)
-        self.actor_target = Actor(state_size, action_size, self.seed).to(self.device)
+        self.actor_local = Actor(state_size, action_size, random_state=self.seed).to(self.device)
+        self.actor_target = Actor(state_size, action_size, random_state=self.seed).to(self.device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
         # Critic Network (incl. target network)
-        self.critic_local = Critic(state_size, action_size, self.seed).to(self.device)
-        self.critic_target = Critic(state_size, action_size, self.seed).to(self.device)
+        self.critic_local = Critic(state_size, action_size, random_state=self.seed).to(self.device)
+        self.critic_target = Critic(state_size, action_size, random_state=self.seed).to(self.device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
 
         # Noise process
@@ -175,7 +175,7 @@ class OUNoise:
         self.theta = theta
         self.sigma = sigma
         self.size = size
-        self.reset()
+        self.reset()    
 
     def reset(self):
         """Reset the internal state to mean."""
