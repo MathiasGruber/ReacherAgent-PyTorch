@@ -52,7 +52,8 @@ if __name__ == '__main__':
             checkpoint=args.checkpoint
         )
     else:
-        train(env, agents, 
+        train(env, agents,
+            num_agents=num_agents, 
             brain_name=brain_name, 
             n_episodes=50000,             
             thr_score=30.0
