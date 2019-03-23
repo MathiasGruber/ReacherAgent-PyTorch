@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import torch
+from torch.autograd import Variable
 
 from collections import namedtuple, deque
 from libs.sumtree import SumTree
@@ -67,11 +68,12 @@ class PrioritizedReplayMemory:
     https://github.com/rlcode/per/blob/master/prioritized_memory.py
     '''
 
-    def __init__(self, capacity):
+    def __init__(self, capacity, batch_size):
         self.e = 0.01
         self.a = 0.6
         self.beta = 0.4
         self.beta_increment_per_sampling = 0.001
+        self.batch_size = batch_size
 
         self.tree = SumTree(capacity)
         self.capacity = capacity
@@ -108,7 +110,7 @@ class PrioritizedReplayMemory:
         p = self._get_priority(error)
         self.tree.add(p, sample)
 
-    def sample(self, n):
+    def sample(self):
         """Sample from prioritized replay memory
         
         Arguments:
@@ -120,12 +122,12 @@ class PrioritizedReplayMemory:
 
         batch = []
         idxs = []
-        segment = self.tree.total() / n
+        segment = self.tree.total() / self.batch_size
         priorities = []
 
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
-        for i in range(n):
+        for i in range(self.batch_size):
             a = segment * i
             b = segment * (i + 1)
 
@@ -144,12 +146,20 @@ class PrioritizedReplayMemory:
         is_weight /= is_weight.max()
 
         # Extract (s, a, r, s', done)
-        batch = np.array(batch).transpose()
-        states = np.vstack(batch[0])
+        batch = np.array(batch).transpose()        
+        states = np.vstack(batch[0])        
         actions = list(batch[1])
         rewards = list(batch[2])
         next_states = np.vstack(batch[3])
         dones = batch[4].astype(int)
+
+        # Move to device etc.
+        states = Variable(torch.Tensor(states)).float().to(device)        
+        actions = Variable(torch.Tensor(actions)).float().to(device)        
+        rewards = torch.FloatTensor(rewards).unsqueeze(1).to(device)
+        next_states = Variable(torch.Tensor(next_states)).float().to(device)
+        dones = torch.FloatTensor(dones).unsqueeze(1).to(device)
+        is_weight = torch.FloatTensor(is_weight).unsqueeze(1).to(device)
 
         return (states, actions, rewards, next_states, dones), idxs, is_weight
 

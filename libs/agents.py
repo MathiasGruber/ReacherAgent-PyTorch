@@ -6,6 +6,8 @@ from collections import namedtuple, deque
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import torch.nn as nn
+from torch.autograd import Variable
 
 from libs.models import Actor, Critic
 from libs.memory import ReplayBuffer, PrioritizedReplayMemory
@@ -14,14 +16,14 @@ BATCH_SIZE = 128        # Batch Size
 BUFFER_SIZE = int(1e5)  # Memory capacity
 GAMMA = 0.99            # Discount factor
 LR_ACTOR = 1e-4         # Actor lerning rate
-LR_CRITIC = 1e-3        # Critic learning rate
+LR_CRITIC = 1e-4        # Critic learning rate
 TAU = 1e-3              # Soft update of target networks
 WEIGHT_DECAY = 0        # L2 weight decay for Critic
-
+NOISE_SIGMA = 0.2       # sigma for Ornstein-Uhlenbeck noise
 
 class Agents():
     
-    def __init__(self, state_size, action_size, num_agents, random_state):
+    def __init__(self, state_size, action_size, num_agents, memory='replay', random_state=42):
         """Initialize an Agent object.
         
         Arguments:
@@ -31,6 +33,7 @@ class Agents():
             random_seed (int) -- random seed
 
         Keyword Arguments:        
+            memory {str} -- which memory type to use (default: {replay}, options: [replay, per])
             random_state {int} -- seed for torch random number generator (default: {42})
         """
         
@@ -56,25 +59,81 @@ class Agents():
         self.noise = OUNoise((num_agents, action_size), self.seed)
 
         # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, self.seed)
+        self.memory_type = memory
+        if self.memory_type == 'replay':
+            self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, self.seed)
+        else:
+            self.memory = PrioritizedReplayMemory(BUFFER_SIZE, BATCH_SIZE)
+
+    def get_per_sample(self, state, action, reward, next_state, next_action, done):
+        """Get the TD error for the current experience samples"""
+
+        # Convert rewards to torch
+        reward = Variable(torch.Tensor(reward)).float().to(self.device)
+
+        # Get the temporal difference (TD) error for prioritized replay
+        self.critic_local.eval()
+        self.critic_target.eval()        
+        with torch.no_grad():
+
+            # Get old Q value. 
+            old_q = self.critic_local(
+                Variable(torch.FloatTensor(state)).to(self.device),
+                Variable(torch.FloatTensor(action)).to(self.device)
+            )
+
+            # Get the new Q value.
+            new_q = reward.unsqueeze(1)
+            if not done:
+                new_q += GAMMA * torch.max(
+                    self.critic_target(
+                        Variable(torch.FloatTensor(next_state)).to(self.device),
+                        Variable(torch.FloatTensor(next_action)).to(self.device)
+                    )
+                )
+            td_error = abs(old_q - new_q)
+
+        self.critic_local.train()
+        self.critic_target.train()
+
+        return td_error
+
     
     def step(self, state, action, reward, next_state, done):
         """Save experience in replay memory. Use random sample from buffer to learn."""
         
-        # Store experience
-        for i in range(self.num_agents):
-            self.memory.add(state[i,:], action[i,:], reward[i], next_state[i,:], done[i])
+        # Different behaviour depending on memory type
+        if self.memory_type == 'replay':
 
-        # Train networks
-        if len(self.memory) > BATCH_SIZE:
-            experiences = self.memory.sample()
-            self.learn(experiences, GAMMA)
+            # Standard replay buffer
+            for i in range(self.num_agents):
+                self.memory.add(state[i,:], action[i,:], reward[i], next_state[i,:], done[i])
+
+            if len(self.memory) > BATCH_SIZE:
+                experiences = self.memory.sample()
+                self.learn(experiences)
+
+        elif self.memory_type == 'per':     
+
+            # Prioritized experience replay
+            next_action = self.act(next_state)
+            td_errors = self.get_per_sample(state, action, reward, next_state, next_action, done)
+            for i in range(self.num_agents):       
+                self.memory.add(td_errors[i], (state[i,:], action[i,:], reward[i], next_state[i,:], done[i]))
+
+            if len(self.memory) > BATCH_SIZE:
+                experiences, idxs, is_weight = self.memory.sample()
+                self.learn(experiences, idxs, is_weight)
+
+        else:
+            raise AttributeError(f'Following memory type has not been implemented: {self.memory_type}')
+
 
     def act(self, states, add_noise=True):
         """Determine agent action based on state
         
         Arguments:
-            state {array_like} -- current state
+            states {array_like} -- state for each agent in the environment
         
         Keyword Arguments:
             add_noise {bool} -- whether to add Ornstain-Uhlenbeck noise to action-making
@@ -98,7 +157,7 @@ class Agents():
         """Reset the internal state of Ornstain-Uhlenbeck noise to mean"""
         self.noise.reset()
 
-    def learn(self, experiences, gamma):
+    def learn(self, experiences, idxs=None, is_weight=None):
         """
         Update actor and critic networks based on experience tuple.
 
@@ -109,7 +168,10 @@ class Agents():
 
         Arguments:
             experiences (Tuple[torch.Tensor]) -- tuple of (s, a, r, s', done) 
-            gamma (float) -- discount factor
+
+        Keyword Arguments:        
+            idxs {list} -- list of sample indexes (default: {None})
+            is_weight {np.array} -- importance sampling weights (default: {None})
         """
 
         # Unpack the tuple
@@ -118,17 +180,28 @@ class Agents():
         # UPDATING THE CRITIC
         #####################
 
+        # Get expected Q value for chosen action
+        Q_expected = self.critic_local(states, actions)
+
         # Get Q values from target models for next states
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
 
         # Compute Q targets for current states
-        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+        Q_targets = rewards + (GAMMA * Q_targets_next * (1 - dones))
 
-        # Compute loss
-        Q_expected = self.critic_local(states, actions)
-        critic_loss = F.mse_loss(Q_expected, Q_targets)
+        # Update priorities in Prioritized Experience Replay
+        if self.memory_type == 'per':
+            errors = torch.abs(Q_expected - Q_targets).data.cpu().numpy()
+            for i in range(len(errors)):
+                self.memory.update(idxs[i], errors[i])
 
+        # Calculate loss based on memory type
+        if self.memory_type == 'per':
+            critic_loss = (is_weight * nn.MSELoss(reduction='none')(Q_expected, Q_targets)).mean()
+        elif self.memory_type == 'replay':
+            critic_loss = F.mse_loss(Q_expected, Q_targets)
+        
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
@@ -168,7 +241,7 @@ class Agents():
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, random_state, mu=0.0, theta=0.15, sigma=0.2):
+    def __init__(self, size, random_state, mu=0.0, theta=0.15, sigma=NOISE_SIGMA):
         """Initialize parameters and noise process."""
         random.seed(random_state)
         self.mu = mu * np.ones(size)

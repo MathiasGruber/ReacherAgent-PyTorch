@@ -8,6 +8,7 @@ from libs.monitor import train, test
 parser = argparse.ArgumentParser()
 parser.add_argument("--test", help="Show pretrained agent in environment", action="store_true")
 parser.add_argument("--no_graphics", help="Do not show graphics during training", action="store_true")
+parser.add_argument("--memory", nargs='?', help="Chose memory type", default="replay",  choices=['per', 'replay'])
 parser.add_argument("--environment", nargs='?', help="Pick environment file", default="env/Reacher.exe")
 parser.add_argument("--checkpoint", nargs='?', help="Pick checkpoint file", default="logs/checkpoint.pth")
 
@@ -42,7 +43,8 @@ if __name__ == '__main__':
         state_size=state_size,
         action_size=action_size,
         num_agents=num_agents,
-        random_state=0
+        memory=args.memory,
+        random_state=42
     )
 
     # Testing or training
