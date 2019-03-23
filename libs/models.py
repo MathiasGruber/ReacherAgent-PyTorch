@@ -18,7 +18,7 @@ class BaseModel(nn.Module):
 class Actor(BaseModel):
     """Actor Model for Policy approoximation."""
 
-    def __init__(self, state_size, action_size, dense_layers=[400, 300], random_state=42):
+    def __init__(self, state_size, action_size, dense_layers=[256, 128], random_state=42):
         """
         Arguments:
             state_size (int) -- Dimension of each state
@@ -50,7 +50,7 @@ class Actor(BaseModel):
 class Critic(BaseModel):
     """Critic Model for Value approoximation."""
 
-    def __init__(self, state_size, action_size, dense_layers=[400, 300], random_state=42):
+    def __init__(self, state_size, action_size, dense_layers=[256, 128], random_state=42):
         """Arguments:
             state_size (int) -- Dimension of each state
             action_size (int) -- Dimension of each action
