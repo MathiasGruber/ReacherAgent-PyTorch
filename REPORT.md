@@ -1,6 +1,9 @@
 # Reacher Game Report
 As so many others I've based my implementation on the deep deterministic gradient method (DDPG), [see paper](https://arxiv.org/abs/1509.02971v5).
 
+## Learning Algorithm
+
+## Hyperparameters
 Settings used to solve the 1-agent and 20-agent environment. Values are inspired by [Zulkhuu repo](https://github.com/Zulkhuu/reinforcement-learning/blob/master/Reacher/docs/Report.md), especially in terms of number of hidden nodes in network layers, where the original paper values of [400, 300] were too much to give meaningful results.
 ```
 BATCH_SIZE = 128        # Batch Size
@@ -18,3 +21,20 @@ dense_layers=[256, 128]
 # Critic
 dense_layers=[256, 128]
 ```
+
+## Results / Plots of Rewards
+### Normal replay buffer
+<p float="left">
+  <img src="logs/scores_singleAgent_replay.png" width="48%" />
+  <img src="logs/scores_multipleAgents_replay.png" width="48%" />
+</p>
+
+### Prioritized experience replay
+<p float="left">
+
+</p>
+
+## Future Work
+The main addition to off-the-shelf DDPG in this repository is prioritized experience replay. For future improvements of the DDPG agent. 
+- [ ] I'd look into further tuning hyperparameters
+- [ ] I'd try reducing the Ornstein-Uhlenbeck noise as more episodes are played.
