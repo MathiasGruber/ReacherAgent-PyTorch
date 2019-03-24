@@ -31,7 +31,8 @@ dense_layers=[256, 128]
 
 ### Prioritized experience replay
 <p float="left">
-
+  <img src="logs/scores_singleAgent_replay_per.png" width="48%" />
+  <img src="logs/scores_multipleAgents_replay_per.png" width="48%" />
 </p>
 
 ## Future Work
