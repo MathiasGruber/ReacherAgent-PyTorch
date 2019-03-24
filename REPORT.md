@@ -31,11 +31,12 @@ dense_layers=[256, 128]
 
 ### Prioritized experience replay
 <p float="left">
-  <img src="logs/scores_singleAgent_replay_per.png" width="48%" />
-  <img src="logs/scores_multipleAgents_replay_per.png" width="48%" />
+  <img src="logs/scores_singleAgent_per.png" width="48%" />
+  <img src="logs/scores_multipleAgents_per.png" width="48%" />
 </p>
 
 ## Future Work
 The main addition to off-the-shelf DDPG in this repository is prioritized experience replay. For future improvements of the DDPG agent. 
 - [ ] I'd look into further tuning hyperparameters
 - [ ] I'd try reducing the Ornstein-Uhlenbeck noise as more episodes are played.
+- [ ] Due to the instability of DDPG, I might look into its extensions such as [Self-Adaptive Double Bootstrapped DDPG (SOUP)](https://www.ijcai.org/proceedings/2018/0444.pdf) that advertise better training stability.
