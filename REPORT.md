@@ -31,7 +31,7 @@ The **actor** network consists of three fully connected layers, where the first 
 
 The **critic** also consists of three fully connected layers, where the first two have relu activations, and the action-vector is concatenated to the output of the first layer. The final layer has a single output.
 
-As described in the [original paper](https://arxiv.org/abs/1509.02971v5), weights are initialized from uniform distribution $[-\frac{1}{\sqrt{f}}, \frac{1}{\sqrt{f}}]$ with $f$ being the fan-in of the layer, except for the last layer which was initialized with [$[-3\times 10^{-3}, 3\times 10^{-3}]$].
+As described in the [original paper](https://arxiv.org/abs/1509.02971v5), weights are initialized from uniform distributions based on the fan-in of the layer, except for the last layer which was initialized with from a uniform distribution from -3e-3 to 3e-3.
 
 ## Results / Plots of Rewards
 The main investigation of this report was how priotized experience replay would influence the results. As seen from the following, the importance sampling does indeed help the agent learn faster.
