@@ -98,14 +98,39 @@ def train(
 
             break
 
-def test(env, agents, brain_name, checkpoint):
+def test(env, agents, brain_name, checkpoint_actor, checkpoint_critic, num_agents=1):
     """Let pre-trained agent play in environment
     
     Arguments:
         env {UnityEnvironment} -- Unity Environment
         agent {object} -- Agent to traverse environment
         brain_name {str} -- brain name for Unity environment (default: {None})
-        checkpoint {str} -- filepath to load network weights
+        checkpoint_actor {str} -- filepath to load network weights for actor
+        checkpoint_critic {str} -- filepath to load network weights for critic
+
+    Keyword Arguments:
+        num_agents {int} -- number of training episodes (default: {1})
     """
 
-    raise NotImplementedError()
+    # Load trained models
+    agents.actor_local.load_state_dict(torch.load(checkpoint_actor))
+    agents.critic_local.load_state_dict(torch.load(checkpoint_critic))
+
+    # Reset noise
+    agents.reset()
+
+    # Initialize & interact in environment
+    env_info = env.reset(train_mode=False)[brain_name]
+    state = env_info.vector_observations
+    for _ in range(600):
+
+        # Get action & perform step
+        action = agents.act(state)
+        env_info = env.step(action)[brain_name]
+        dones = env_info.local_done
+        state = env_info.vector_observations
+        if np.any(dones):
+            break
+
+        # Prevent too fast rendering
+        time.sleep(1 / 60.)

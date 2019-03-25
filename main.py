@@ -10,7 +10,8 @@ parser.add_argument("--test", help="Show pretrained agent in environment", actio
 parser.add_argument("--no_graphics", help="Do not show graphics during training", action="store_true")
 parser.add_argument("--memory", nargs='?', help="Chose memory type", default="replay",  choices=['per', 'replay'])
 parser.add_argument("--environment", nargs='?', help="Pick environment file", default="env/Reacher.exe")
-parser.add_argument("--checkpoint", nargs='?', help="Pick checkpoint file", default="logs/checkpoint.pth")
+parser.add_argument("--checkpoint_actor", nargs='?', help="Pick checkpoint file for actor", default="logs/weights_actor_singleAgent_per.pth")
+parser.add_argument("--checkpoint_critic", nargs='?', help="Pick checkpoint file for critic", default="logs/weights_critic_singleAgent_per.pth")
 
 
 if __name__ == '__main__':
@@ -51,7 +52,9 @@ if __name__ == '__main__':
     if args.test:
         test(env, agents,
             brain_name=brain_name, 
-            checkpoint=args.checkpoint
+            checkpoint_actor=args.checkpoint_actor,
+            checkpoint_critic=args.checkpoint_critic,
+            num_agents=num_agents
         )
     else:
         train(env, agents,

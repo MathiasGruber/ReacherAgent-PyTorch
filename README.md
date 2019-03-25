@@ -53,5 +53,5 @@ python main.py --environment env_unity/Reacher_multipleAgents/Reacher.exe
 # Testing the agent
 Once the agent has been trained, it can be run as follows:
 ```
-TO BE IMPLEMENTED
+python main.py --environment env_unity/Reacher_multipleAgents/Reacher.exe --test --checkpoint_actor logs/weights_actor_multipleAgents_replay.pth --checkpoint_critic logs/weights_critic_multipleAgents_replay.pth
 ```
