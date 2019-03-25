@@ -1,7 +1,11 @@
 # Reacher Game Report
-As so many others I've based my implementation on the deep deterministic gradient method (DDPG), [see paper](https://arxiv.org/abs/1509.02971v5).
 
 ## Learning Algorithm
+I've based my implementation on the deep deterministic gradient method (DDPG), [see paper](https://arxiv.org/abs/1509.02971v5).The learning algorithm is detailed by the following:
+
+<img src="logs/DDPG_algorithm.png" width="70%" />
+
+The implementation is such that the code can run for both the single-agent and 20-agent environment, and so that instead of only being able to use the traditional replay buffer, it can also use [Prioritized Experience Replay for DDPG(https://ieeexplore.ieee.org/document/8122622/).
 
 ## Hyperparameters
 Settings used to solve the 1-agent and 20-agent environment. Values are inspired by [Zulkhuu repo](https://github.com/Zulkhuu/reinforcement-learning/blob/master/Reacher/docs/Report.md), especially in terms of number of hidden nodes in network layers, where the original paper values of [400, 300] were too much to give meaningful results.
@@ -22,7 +26,16 @@ dense_layers=[256, 128]
 dense_layers=[256, 128]
 ```
 
+### Model Architecture
+The **actor** network consists of three fully connected layers, where the first two have relu activations, and the final output layer yields 4 values with a tanh activation.
+
+The **critic** also consists of three fully connected layers, where the first two have relu activations, and the action-vector is concatenated to the output of the first layer. The final layer has a single output.
+
+As described in the [original paper](https://arxiv.org/abs/1509.02971v5), weights are initialized from uniform distribution $[-\frac{1}{\sqrt{f}}, \frac{1}{\sqrt{f}}]$ with $f$ being the fan-in of the layer, except for the last layer which was initialized with [$[-3\times 10^{-3}, 3\times 10^{-3}]$].
+
 ## Results / Plots of Rewards
+The main investigation of this report was how priotized experience replay would influence the results. As seen from the following, the importance sampling does indeed help the agent learn faster.
+
 ### Normal replay buffer
 <p float="left">
   <img src="logs/scores_singleAgent_replay.png" width="48%" />
@@ -36,7 +49,7 @@ dense_layers=[256, 128]
 </p>
 
 ## Future Work
-The main addition to off-the-shelf DDPG in this repository is prioritized experience replay. For future improvements of the DDPG agent. 
+The main addition to off-the-shelf DDPG in this repository is prioritized experience replay. For future improvements of the DDPG agent, I'd look into:
 - [ ] I'd look into further tuning hyperparameters
 - [ ] I'd try reducing the Ornstein-Uhlenbeck noise as more episodes are played.
 - [ ] Due to the instability of DDPG, I might look into its extensions such as [Self-Adaptive Double Bootstrapped DDPG (SOUP)](https://www.ijcai.org/proceedings/2018/0444.pdf) that advertise better training stability.
