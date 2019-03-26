@@ -17,8 +17,8 @@ The observation space consists of 33 variables corresponding to position, rotati
 
 Two separate versions of the Unity environment are provided:
 
-* The first version contains a single agent.
-* The second version contains 20 identical agents, each with its own copy of the environment.
+* The first version contains a single agent. The task is episodic, the agent must get an average score of +30 over 100 consecutive episodes for it to be considered solved.
+* The second version contains 20 identical agents, each with its own copy of the environment. The task is episodic, and an average score for the 20 agents is calculated after each episode. The environment is considered solved when the average (over 100 episodes) of those average scores is at least +30.
 
 The second version is useful for algorithms like PPO, A3C, and D4PG that use multiple (non-interacting, parallel) copies of the same agent to distribute the task of gathering experience.
 
